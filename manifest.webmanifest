@@ -1,0 +1,19 @@
+{
+  "name": "Gala Awards Voting",
+  "short_name": "Gala Awards",
+  "description": "Vota en los premios de Gala Awards.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090a0d",
+  "theme_color": "#090a0d",
+  "icons": [
+    {
+      "src": "icon-gala.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
