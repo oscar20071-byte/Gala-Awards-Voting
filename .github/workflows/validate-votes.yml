@@ -1,0 +1,35 @@
+name: Validate Gala votes
+on:
+  issues:
+    types: [opened]
+permissions:
+  issues: write
+jobs:
+  validate:
+    if: startsWith(github.event.issue.title, 'VOTO - ')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title;
+            const match = title.match(/^VOTO - (.+) - (.+)$/);
+            if (!match) {
+              await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,body:"⚠️ Formato de voto inválido. Este voto no se contará."});
+              await github.rest.issues.update({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,state:"closed"});
+              return;
+            }
+            const award = match[1].trim(), nominee = match[2].trim();
+            const {data: all} = await github.rest.issues.listForRepo({owner:context.repo.owner,repo:context.repo.repo,state:"all",per_page:100});
+            const prior = all.find(x => x.number !== issue.number && !x.pull_request && x.user.login === issue.user.login && x.title.startsWith("VOTO - "+award+" - ") && (x.labels||[]).some(l => (typeof l==="string"?l:l.name)==="vote-valid"));
+            try { await github.rest.issues.createLabel({owner:context.repo.owner,repo:context.repo.repo,name:"vote-valid",color:"1f883d",description:"Voto validado y contabilizable"}); } catch(e) {}
+            try { await github.rest.issues.createLabel({owner:context.repo.owner,repo:context.repo.repo,name:"vote-duplicate",color:"b60205",description:"Voto duplicado rechazado"}); } catch(e) {}
+            if (prior) {
+              await github.rest.issues.addLabels({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,labels:["vote-duplicate"]});
+              await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,body:"🚫 **Voto duplicado rechazado.** Ya existe un voto validado de @"+issue.user.login+" para **"+award+"**. Solo se cuenta el primer voto por premio."});
+              await github.rest.issues.update({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,state:"closed"});
+            } else {
+              await github.rest.issues.addLabels({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,labels:["vote-valid"]});
+              await github.rest.issues.createComment({owner:context.repo.owner,repo:context.repo.repo,issue_number:issue.number,body:"✅ **Voto validado y contabilizado**\n\nPremio: **"+award+"**\nNominado: **"+nominee+"**\nVotante: @"+issue.user.login+"\n\nSolo se permite un voto por cuenta de GitHub en cada premio."});
+            }
