@@ -33,5 +33,45 @@ function voteOpen(name){current=config.awards.find(a=>a.name===name);chosen=null
 function candidateChoose(i){chosen=i;document.querySelectorAll(".nomcard").forEach(x=>x.classList.remove("chosen"));document.getElementById("c-"+i).classList.add("chosen")}
 function voteClose(){document.getElementById("voteModal").classList.remove("open")}
 function voteSubmit(){if(chosen===null){document.getElementById("voteHint").textContent="Selecciona un nominado antes de continuar.";return}let nominee=current.nominees[chosen],title="VOTO - "+current.name+" - "+nominee.name,body="Premio: "+current.name+"\nNominado elegido: "+nominee.name+"\n\nVoto enviado mediante Gala Awards Voting.\n\nRegistro público: la cuenta de GitHub será visible como autor.";let url="https://github.com/oscar20071-byte/Gala-Awards-Voting/issues/new?title="+encodeURIComponent(title)+"&body="+encodeURIComponent(body);window.open(url,"_blank");document.getElementById("voteHint").textContent="Se abrió GitHub para que completes y envíes el voto. El registro requiere iniciar sesión."}
-\nasync function loadResults(){const box=document.getElementById("results");box.innerHTML='<article class="award">Cargando votos validados…</article>';try{let issues=[],page=1;while(true){const res=await fetch("https://api.github.com/repos/oscar20071-byte/Gala-Awards-Voting/issues?state=all&labels=vote-valid&per_page=100&page="+page,{cache:"no-store"});if(!res.ok)throw new Error("GitHub API "+res.status);const batch=await res.json();issues.push(...batch.filter(x=>!x.pull_request));if(batch.length<100)break;page++}const totals={};issues.forEach(issue=>{const m=issue.title.match(/^VOTO - (.+) - (.+)$/);if(!m)return;const award=m[1].trim(),nom=m[2].trim();totals[award]??={};totals[award][nom]=(totals[award][nom]||0)+1});box.innerHTML=config.awards.map(a=>{const votes=totals[a.name]||{},total=Object.values(votes).reduce((sum,n)=>sum+n,0),rank=Object.entries(votes).sort((x,y)=>y[1]-x[1]),top=rank.length?rank[0][1]:0,winners=rank.filter(x=>x[1]===top).map(x=>x[0]);let status=total===0?'Sin votos todavía':winners.length>1?'🤝 Empate provisional':'🥇 Líder provisional';let leader=total===0?'Esperando votos':winners.length>1?winners.join(' · '):winners[0];let rows=a.nominees.map(n=>{const count=votes[n.name]||0,pct=total?Math.round(count/total*100):0;return {name:n.name,count,pct}}).sort((x,y)=>y.count-x.count);return '<article class="award"><h3>🏆 '+esc(a.name)+'</h3><div style="font-weight:800;color:var(--gold);margin:8px 0">'+esc(status)+'</div><div style="font-size:18px;font-weight:900">'+esc(leader)+'</div><p>'+total+' voto'+(total===1?'':'s')+' contabilizado'+(total===1?'':'s')+'</p>'+rows.map(x=>'<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;gap:8px;font-size:13px"><b>'+esc(x.name)+'</b><span>'+x.pct+'% · '+x.count+'</span></div><div style="height:9px;background:#333;border-radius:8px;overflow:hidden;margin-top:5px"><div style="height:100%;width:'+x.pct+'%;background:linear-gradient(90deg,#b58b39,#f0d888);border-radius:8px"></div></div></div>').join('')+'</article>'}).join('')}catch(e){box.innerHTML='<article class="award">No se pudieron cargar los resultados. Pulsa actualizar en unos segundos. <p class="note">'+esc(e.message)+'</p></article>'}}\nboot().then(()=>loadResults()).catch(e=>{document.getElementById('tabs').innerHTML='<p class="note">Error cargando premios: '+esc(e.message)+'</p>';document.getElementById('awards').innerHTML='';document.getElementById('results').innerHTML='<article class="award">No se pudo iniciar la página. Recarga.</article>'});
+\nasync function loadResults(){
+ const box=document.getElementById("results");
+ if(!box)return;
+ box.innerHTML='<article class="award">Consultando votos...</article>';
+ try{
+  const response=await fetch("https://api.github.com/repos/oscar20071-byte/Gala-Awards-Voting/issues?state=all&labels=vote-valid&per_page=100",{cache:"no-store"});
+  if(!response.ok)throw new Error("GitHub respondió "+response.status);
+  const issues=(await response.json()).filter(x=>!x.pull_request);
+  const counts={};
+  for(const issue of issues){
+   const m=issue.title.match(/^VOTO - (.+) - (.+)$/);
+   if(!m)continue;
+   const award=m[1].trim(),nominee=m[2].trim();
+   if(!counts[award])counts[award]={};
+   counts[award][nominee]=(counts[award][nominee]||0)+1;
+  }
+  let cards="";
+  for(const award of config.awards){
+   const votes=counts[award.name]||{};
+   const total=Object.values(votes).reduce((sum,n)=>sum+n,0);
+   const sorted=Object.entries(votes).sort((a,b)=>b[1]-a[1]);
+   let leader="Todavía sin votos",label="Sin votos";
+   if(total>0){
+    const tied=sorted.filter(x=>x[1]===sorted[0][1]);
+    leader=tied.map(x=>x[0]).join(" / ");
+    label=tied.length>1?"🤝 Empate provisional":"🥇 Líder provisional";
+   }
+   let lines="";
+   for(const nom of award.nominees){
+    const n=votes[nom.name]||0;
+    const pct=total?Math.round(n*100/total):0;
+    lines+='<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(nom.name)+'</b><span>'+pct+'% · '+n+'</span></div><div style="height:8px;background:#333;border-radius:8px;margin-top:5px;overflow:hidden"><div style="height:8px;width:'+pct+'%;background:#dfbd68"></div></div></div>';
+   }
+   cards+='<article class="award"><h3>🏆 '+esc(award.name)+'</h3><div style="color:var(--gold);font-weight:bold;margin:8px 0">'+label+'</div><div style="font-size:18px;font-weight:900">'+esc(leader)+'</div><p>'+total+' votos</p>'+lines+'</article>';
+  }
+  box.innerHTML=cards||'<article class="award">No hay premios configurados.</article>';
+ }catch(error){
+  box.innerHTML='<article class="award"><h3>No se pudieron cargar los resultados</h3><p>'+esc(error.message)+'</p><button onclick="loadResults()">Reintentar</button></article>';
+ }
+}
+boot().then(()=>loadResults());
 </script></body></html>
