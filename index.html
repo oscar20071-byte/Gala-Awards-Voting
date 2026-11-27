@@ -33,7 +33,8 @@ function voteOpen(name){current=config.awards.find(a=>a.name===name);chosen=null
 function candidateChoose(i){chosen=i;document.querySelectorAll(".nomcard").forEach(x=>x.classList.remove("chosen"));document.getElementById("c-"+i).classList.add("chosen")}
 function voteClose(){document.getElementById("voteModal").classList.remove("open")}
 function voteSubmit(){if(chosen===null){document.getElementById("voteHint").textContent="Selecciona un nominado antes de continuar.";return}let nominee=current.nominees[chosen],title="VOTO - "+current.name+" - "+nominee.name,body="Premio: "+current.name+"\nNominado elegido: "+nominee.name+"\n\nVoto enviado mediante Gala Awards Voting.\n\nRegistro público: la cuenta de GitHub será visible como autor.";let url="https://github.com/oscar20071-byte/Gala-Awards-Voting/issues/new?title="+encodeURIComponent(title)+"&body="+encodeURIComponent(body);window.open(url,"_blank");document.getElementById("voteHint").textContent="Se abrió GitHub para que completes y envíes el voto. El registro requiere iniciar sesión."}
-\nasync function loadResults(){
+
+async function loadResults(){
  const box=document.getElementById("results");
  if(!box)return;
  box.innerHTML='<article class="award">Consultando votos...</article>';
