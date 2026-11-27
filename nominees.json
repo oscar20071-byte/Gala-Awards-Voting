@@ -5,23 +5,7 @@
       "nominees": []
     },
     {
-      "name": "Mejor jugador joven",
-      "nominees": []
-    },
-    {
-      "name": "Mejor portero",
-      "nominees": []
-    },
-    {
-      "name": "Mejor delantero",
-      "nominees": []
-    },
-    {
-      "name": "Mejor mediocampista",
-      "nominees": []
-    },
-    {
-      "name": "Mejor defensa",
+      "name": "Playmaker",
       "nominees": []
     },
     {
@@ -29,35 +13,51 @@
       "nominees": []
     },
     {
-      "name": "Máximo asistente",
+      "name": "THE BEST – Mejor Defensa",
       "nominees": []
     },
     {
-      "name": "Mejor entrenador",
+      "name": "THE BEST – Mejor Delantero",
       "nominees": []
     },
     {
-      "name": "Mejor club",
+      "name": "THE BEST – Mejor Mediocampista",
       "nominees": []
     },
     {
-      "name": "Mejor selección",
+      "name": "THE BEST – Mejor Portero",
       "nominees": []
     },
     {
-      "name": "Gol del año",
+      "name": "THE BEST – XI Ideal",
       "nominees": []
     },
     {
-      "name": "Fair Play",
+      "name": "Club de Oro",
       "nominees": []
     },
     {
-      "name": "Once ideal",
+      "name": "Club Revelación",
       "nominees": []
     },
     {
-      "name": "Premio especial",
+      "name": "Selección de Oro",
+      "nominees": []
+    },
+    {
+      "name": "Selección Revelación",
+      "nominees": []
+    },
+    {
+      "name": "Jugador Revelación",
+      "nominees": []
+    },
+    {
+      "name": "Kopa",
+      "nominees": []
+    },
+    {
+      "name": "Golden Boy",
       "nominees": []
     }
   ]
