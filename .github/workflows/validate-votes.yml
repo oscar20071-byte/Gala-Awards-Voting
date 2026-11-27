@@ -21,7 +21,7 @@ jobs:
               return;
             }
             const award = match[1].trim(), nominee = match[2].trim();
-            const {data: all} = await github.rest.issues.listForRepo({owner:context.repo.owner,repo:context.repo.repo,state:"all",per_page:100});
+            const all = await github.paginate(github.rest.issues.listForRepo,{owner:context.repo.owner,repo:context.repo.repo,state:"all",per_page:100});
             const prior = all.find(x => x.number !== issue.number && !x.pull_request && x.user.login === issue.user.login && x.title.startsWith("VOTO - "+award+" - ") && (x.labels||[]).some(l => (typeof l==="string"?l:l.name)==="vote-valid"));
             try { await github.rest.issues.createLabel({owner:context.repo.owner,repo:context.repo.repo,name:"vote-valid",color:"1f883d",description:"Voto validado y contabilizable"}); } catch(e) {}
             try { await github.rest.issues.createLabel({owner:context.repo.owner,repo:context.repo.repo,name:"vote-duplicate",color:"b60205",description:"Voto duplicado rechazado"}); } catch(e) {}
